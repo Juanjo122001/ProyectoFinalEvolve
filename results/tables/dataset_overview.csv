@@ -1,0 +1,11 @@
+﻿Metric,Value
+rows,1164
+columns,26
+countries,40
+start_semester,2021-S1
+end_semester,2025-S2
+years,"[2021, 2022, 2023, 2024, 2025]"
+numerical_variables,16
+categorical_variables,10
+missing_values,240
+duplicate_rows,0

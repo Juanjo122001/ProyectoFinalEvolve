@@ -1,0 +1,6 @@
+Metric;Value
+highest_mean;Year
+highest_std;Year
+highest_cv;Gas_Price_Change
+highest_skewness;Gas_Price_Pct_Change
+highest_kurtosis;Gas_Price_Pct_Change
