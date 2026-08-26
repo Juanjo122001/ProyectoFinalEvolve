@@ -23,7 +23,6 @@ MODEL_PATH = (
     PROJECT_ROOT
     / "results"
     / "models"
-    / "gas_ridge.pkl"
 )
 
 FIGURES_PATH = (
@@ -36,6 +35,11 @@ FIGURES_PATH.mkdir(
     parents=True,
     exist_ok=True
 )
+
+MODELS_ANALYZE = {
+    "Ridge" : "gas_ridge.pkl",
+    "LightGBM" : "gas_lightgbm.pkl"
+}
 
 
 # ============================================================
@@ -91,10 +95,12 @@ def prepare_features(df):
 # CARGAR MODELO
 # ============================================================
 
-def load_model():
+def load_model(model_filename):
+
+    model_path = MODEL_PATH / model_filename
 
     model = joblib.load(
-        MODEL_PATH
+        model_path
     )
 
     return model
@@ -106,7 +112,8 @@ def load_model():
 
 def calculate_shap_values(
     model,
-    X
+    X,
+    model_name
 ):
 
     # --------------------------------------------------------
@@ -119,14 +126,12 @@ def calculate_shap_values(
     # SHAP debe analizar el modelo completo.
     # --------------------------------------------------------
 
-    explainer = shap.Explainer(
-        model.predict,
-        X
-    )
-
-    shap_values = explainer(
-        X
-    )
+    if "LightGBM" in model_name:
+        explainer = shap.TreeExplainer(model)
+        shap_values = explainer(X)
+    else:
+        explainer = shap.Explainer(model.predict, X)
+        shap_values = explainer(X)
 
     return shap_values
 
@@ -137,7 +142,8 @@ def calculate_shap_values(
 
 def plot_shap_summary(
     shap_values,
-    X
+    X,
+    model_name
 ):
 
     plt.figure()
@@ -150,9 +156,11 @@ def plot_shap_summary(
 
     plt.tight_layout()
 
+    filename_suffix = model_name.lower().replace(" ", "_")
+
     output_path = (
         FIGURES_PATH
-        / "shap_summary_gas_ridge.png"
+        / f"shap_summary_gas_{filename_suffix}.png"
     )
 
     plt.savefig(
@@ -175,7 +183,8 @@ def plot_shap_summary(
 
 def plot_shap_bar(
     shap_values,
-    X
+    X,
+    model_name
 ):
 
     plt.figure()
@@ -189,9 +198,11 @@ def plot_shap_bar(
 
     plt.tight_layout()
 
+    filename_suffix = model_name.lower().replace(" ", "_")
+
     output_path = (
         FIGURES_PATH
-        / "shap_importance_gas_ridge.png"
+        / f"shap_importance_gas_{filename_suffix}.png"
     )
 
     plt.savefig(
@@ -215,23 +226,29 @@ def plot_shap_bar(
 def plot_shap_dependence(
     shap_values,
     X,
-    feature
+    feature,
+    model_name
 ):
+    values_to_plot = shap_values.values if hasattr(shap_values, 'values') else shap_values
+    
 
     plt.figure()
 
     shap.dependence_plot(
         feature,
-        shap_values.values,
+        values_to_plot,
         X,
         show=False
     )
 
     plt.tight_layout()
 
+    filename_suffix = model_name.lower().replace(" ", "_")
+
+
     output_path = (
         FIGURES_PATH
-        / f"shap_dependence_{feature.lower()}.png"
+        / f"shap_dependence_{feature.lower()}_{filename_suffix}.png"
     )
 
     plt.savefig(
@@ -282,70 +299,24 @@ def main():
 
     # --------------------------------------------------------
     # Modelo
-    # --------------------------------------------------------
 
-    model = load_model()
+    for model_name, model_filename in MODELS_ANALYZE.items():
+        print(f"Analizando modelo: {model_name}")
 
-    print(
-        f"\nModelo cargado desde:"
-        f"\n{MODEL_PATH}"
-    )
+        model = load_model(model_filename)
+        if model is None:
+            continue
 
-    # --------------------------------------------------------
-    # SHAP
-    # --------------------------------------------------------
+        print(f"Calculando valores SHAP para {model_name}")
+        shap_values = calculate_shap_values(model, X, model_name)
+        print("Valores SHAP calculados correctamente")
+        plot_shap_summary(shap_values,X,model_name)
+        plot_shap_bar(shap_values,X,model_name)
+        if "Gas_Price_Lag_1" in X.columns:
+            print("\nGenerando gráfico de dependencia para 'Gas_Price_Lag_1'...")
+            plot_shap_dependence(shap_values,X,"Gas_Price_Lag_1", model_name)
 
-    print(
-        "\nCalculando valores SHAP..."
-    )
-
-    shap_values = calculate_shap_values(
-        model,
-        X
-    )
-
-    print(
-        "Valores SHAP calculados correctamente."
-    )
-
-    # --------------------------------------------------------
-    # Summary
-    # --------------------------------------------------------
-
-    plot_shap_summary(
-        shap_values,
-        X
-    )
-
-    # --------------------------------------------------------
-    # Bar
-    # --------------------------------------------------------
-
-    plot_shap_bar(
-        shap_values,
-        X
-    )
-
-    # --------------------------------------------------------
-    # Dependencia
-    # --------------------------------------------------------
-
-    if "Gas_Price_Lag_1" in X.columns:
-
-        print(
-            "\nGenerando gráfico de dependencia "
-            "para 'Gas_Price_Lag_1'..."
-        )
-
-        plot_shap_dependence(
-            shap_values,
-            X,
-            "Gas_Price_Lag_1"
-        )
-
-    print(
-        "\nAnálisis SHAP completado."
-    )
+    print("\nAnálisis SHAP completado.")
 
 
 if __name__ == "__main__":
