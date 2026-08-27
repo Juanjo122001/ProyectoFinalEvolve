@@ -17,8 +17,8 @@ Consistía en diseñar un sistema multiagente orientado a servir de apoyo en el 
 ---
 
 ## 5. Predicción del Mercado Energético (Proyecto Final Seleccionado)
-Tras evaluar la viabilidad de las opciones anteriores, la idea finalmente seleccionada y desarrollada consiste en la creación de un sistema predictivo para el mercado de la electricidad y el gas natural. 
+Tras evaluar la viabilidad de las opciones anteriores, la idea finalmente seleccionada y desarrollada consiste en el análisis del mercado energético europeo y la creación de un sistema predictivo para el gas natural. 
 
-*   **Problema abordado:** La extrema volatilidad de los precios energéticos generada por crisis geopolíticas (Guerra de Ucrania, Oriente Medio) y factores macroeconómicos, lo cual dificulta la presupuestación y planificación operativa de las empresas.
-*   **Enfoque metodológico:** Extracción, transformación y consolidación de datos procedentes de fuentes oficiales e institucionales (Eurostat y MIBGAS). Sobre esta capa de datos tratada, se entrena un ecosistema de modelos de *Machine Learning* (Ridge Regression, Random Forest, LightGBM) para predecir series temporales de precios.
-*   **Valor del producto (MVP):** Un panel o sistema analítico que permite a comercializadoras, industrias electrointensivas y analistas logísticos visualizar el impacto del gas sobre la electricidad, anticipar sobrecostes a un mes vista y entender los motivos de las predicciones a través de herramientas de interpretabilidad (SHAP).
+*   **Problema abordado:** La extrema volatilidad de los precios energéticos generada por crisis geopolíticas y macroeconómicas, lo cual dificulta la presupuestación y planificación operativa de las empresas.
+*   **Enfoque metodológico:** El proyecto se divide funcionalmente en dos fases. Primero, un análisis exploratorio de la relación histórica entre el precio del gas y la electricidad en Europa. Una vez establecido este contexto, el proyecto se centra exclusivamente en predecir la serie temporal diaria del gas natural (MIBGAS) mediante algoritmos de regresión de *Machine Learning* (Ridge Regression, LightGBM).
+*   **Valor del producto (MVP):** Un panel analítico que permite visualizar el impacto estructural del gas sobre la electricidad y anticipar el precio diario del gas a un mes vista mediante pronósticos recursivos, mejorando la toma de decisiones de compra en el mercado diario (*Spot*).
