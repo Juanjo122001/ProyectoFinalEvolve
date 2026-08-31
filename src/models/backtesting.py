@@ -85,7 +85,8 @@ def run_recursive_backtest(df: pd.DataFrame, start_idx: int, model, expected_fea
         X_step['Gas_Trend'] = history[-1] - history[-7]
         
         # Handle division by zero carefully for percentage change
-        X_step['Gas_Price_Pct_Change_Lag_1'] = (history[-1] / history[-2]) - 1 if history[-2] != 0 else 0
+        # Handle division by zero carefully for percentage change (Scaled x100 to match training)
+        X_step['Gas_Price_Pct_Change_Lag_1'] = ((history[-1] / history[-2]) - 1) * 100 if history[-2] != 0 else 0
         
         # Ensure exact feature order for the model
         X_features = X_step[expected_features]

@@ -1,53 +1,41 @@
 # 05_diseno_frontal.md
 
 ## 1. Resumen de la solución y del usuario
-El mercado energético sufre una volatilidad extrema, dificultando la planificación financiera y logística. Para resolver este problema, el presente proyecto ha desarrollado un ecosistema de modelado predictivo de *Machine Learning* sobre el mercado eléctrico y el gas natural (MIBGAS).
-
-*   **Usuario principal:** Analistas financieros, gestores de compras (departamentos de *trading*) y planificadores logísticos de empresas electrointensivas.
-*   **Necesidad concreta:** Anticipar la tendencia de los precios de la energía a corto y medio plazo para presupuestar operaciones y decidir el momento óptimo de compra en el mercado *Spot* (diario).
-*   **Tipo de producto:** Un **Dashboard Analítico y Predictor interactivo**.
-*   **Resultado o acción principal:** El usuario obtendrá una curva visual con la predicción del precio a 30 días vista, acompañada de métricas explicativas. La acción principal derivada será ejecutar una orden de compra (si la predicción es alcista) o aplazar la compra (si la tendencia prevista es a la baja).
+*   **Problema:** La extrema volatilidad de los precios del gas natural (MIBGAS), que impide una planificación logística y presupuestaria fiable.
+*   **Usuario principal:** Gestor de *trading* energético o analista de compras.
+*   **Necesidad:** Anticipar la inercia del precio diario del gas a 30 días vista para optimizar estrategias operativas.
+*   **Tipo de producto:** *Dashboard* analítico y predictor operativo.
+*   **Acción principal:** Decidir si adelantar compras en el mercado *Spot* o aplicar estrategias de cobertura (*hedging*) basándose en la proyección técnica del mercado y la explicabilidad de sus factores.
 
 ## 2. Imagen mockup del frontal
 
-*(La siguiente imagen representa el boceto de la pantalla principal del MVP, orientada a la toma de decisiones del departamento de compras).*
+![Mockup del frontal](../assets/05_mockup_frontal.jpg)
 
-![Mockup del frontal](../assets/05_mockup_frontal.png)
-
-*Nota: La imagen muestra el selector de parámetros en la zona superior, la gráfica central combinando histórico y predicción (con intervalos de confianza), los KPIs numéricos destacados a la izquierda y el módulo de interpretabilidad SHAP a la derecha.*
+*(Nota de trazabilidad técnica: La imagen superior representa una visión conceptual a futuro del producto. Las especificaciones exactas sobre qué elementos visuales son viables con los datos actuales se detallan en la Sección 5).*
 
 ## 3. Justificación del diseño
 
 ### 3.1. Utilidad y valor de la solución
-El diseño del frontal no busca ser un mero repositorio de gráficos, sino un catalizador de decisiones de negocio. 
-*   **Utilidad:** Transforma los complejos outputs matemáticos de los modelos *Ridge/LightGBM* en una interfaz limpia y procesable.
-*   **Valor:** Ahorra horas de análisis estadístico manual y reduce el riesgo financiero de comprar energía en picos máximos. 
-*   **Información esencial:** Se prioriza la curva futura (precio en €/MWh) y los factores influyentes, ocultando deliberadamente la complejidad algorítmica (hiperparámetros, métricas MAE/R²) para no abrumar al usuario de negocio.
+El *dashboard* centraliza la estimación del mercado a 30 días. Tras validar empíricamente que el MIBGAS se aproxima a un paseo aleatorio (*Random Walk*), el valor de la solución no reside en una predicción "mágica", sino en anclar las expectativas del negocio en una proyección inercial robusta (Modelo Naive) y advertir sobre los riesgos de degradación. Se prioriza mostrar la tendencia cruda y la explicabilidad del modelo (SHAP) para que el trader comprenda qué señales históricas a corto plazo están marcando el precio.
 
 ### 3.2. Flujo de usuario
-El recorrido del gestor de compras dentro de la herramienta es el siguiente:
-1.  **Punto de entrada:** El usuario accede a la pantalla principal, que por defecto muestra el mercado MIBGAS en tiempo real (cotización actual).
-2.  **Entradas o selecciones:** Utiliza los filtros superiores para seleccionar el horizonte de predicción (7, 14 o 30 días) y, opcionalmente, simular la activación de un "Cisne Negro" (ej. tensión geopolítica).
-3.  **Procesamiento (oculto):** En el *backend*, los datos seleccionados se inyectan en el modelo entrenado, calculando las variables autorregresivas (lags) y generando el vector de predicciones.
-4.  **Resultado:** El *dashboard* se actualiza. La línea continua (histórico) se engancha con una línea discontinua (predicción) que incluye bandas de confianza. A la derecha, el gráfico SHAP explica por qué el precio va a subir o bajar.
-5.  **Acción:** Basado en la confianza que le genera la explicación gráfica, el gestor toma la decisión y pulsa en "Exportar Informe Predictivo" para adjuntarlo a su orden de compra.
-6.  **Excepciones:** Si los datos de entrada (ej. caída de la web oficial de Eurostat) están corruptos, el sistema mostrará una alerta roja clara: "Alerta: Confianza del modelo baja por discontinuidad de datos en origen".
+1.  **Punto de entrada:** El usuario visualiza el último precio de cierre de MIBGAS y el KPI predictivo a 30 días.
+2.  **Análisis de contexto:** Revisa la gráfica central para entender la evolución de las últimas semanas frente a la inercia proyectada.
+3.  **Explicabilidad (Caja Blanca):** Consulta el panel lateral para identificar qué variables del *pipeline* (ej. el retardo del día anterior o la tendencia semanal) justifican el comportamiento actual del modelo, huyendo de las cajas negras.
+4.  **Acción:** Ejecuta la estrategia de compra o asume una posición de espera, valorando si la tendencia a 30 días pone en riesgo su presupuesto.
 
 ### 3.3. Experiencia de usuario
-*   **Jerarquía visual:** El ojo va directamente a la curva central de precios, que ocupa el 60% de la pantalla, por ser el dato crítico.
-*   **Simplicidad:** La paleta de colores es minimalista. Azul para datos reales y constatados, Naranja para estimaciones (creando una separación semántica clara entre certeza y probabilidad).
-*   **Contexto y confianza:** Nunca se muestra la predicción como un valor exacto infalible. Se utiliza una franja o banda sombreada alrededor de la línea discontinua para indicar visualmente el margen de error del modelo, gestionando las expectativas.
-*   **Control del usuario:** La visualización de los valores SHAP (por ejemplo, ver que una gran barra roja significa "fuerte inercia alcista del día anterior") otorga al usuario control cognitivo; entiende la "lógica" de la máquina y confía más en ella.
+*   **Jerarquía visual:** El precio actual y la métrica de predicción dominan la vista.
+*   **Simplicidad y lenguaje de negocio:** Se omite deliberadamente la carga cognitiva de métricas estadísticas (MSE, RMSE, R²). El decisor consume exclusivamente euros por megavatio hora (€/MWh).
+*   **Contexto:** La integración del histórico real empalmado con la línea de predicción permite una evaluación visual inmediata de la coherencia de la proyección.
 
 ## 4. Presentación de resultados y explicabilidad
-Para evitar el efecto de "caja negra" que genera rechazo en usuarios no técnicos, los resultados se comunican de forma transparente:
-*   **Resultado principal:** Curva proyectada a 30 días y KPI numérico del precio promedio esperado en la próxima semana.
-*   **Contexto (Incertidumbre):** Se acompaña el KPI con un rango (ej. "45.20 €/MWh ± 3.5 €"). Se evita presentar la estimación como certeza absoluta.
-*   **Información técnica:** Todo el rigor matemático (*Loss curves*, curvas ROC, pesos exactos de Ridge) queda relegado a una pestaña secundaria llamada "Auditoría de Modelo", liberando el *dashboard* operativo.
-*   **IA Generativa:** NO se utilizará IA Generativa (LLMs) para narrar o explicar los resultados. La explicabilidad del proyecto se apoya rigurosamente en el marco matemático SHAP (*SHapley Additive exPlanations*), garantizando una trazabilidad determinista y evitando el riesgo de "alucinaciones" al justificar decisiones financieras críticas.
+El resultado principal es la estimación determinista del precio diario a 30 días vista. Para dotarlo de contexto transparente, el panel de "Influencia" alojará los resultados de interpretabilidad **SHAP**, mostrando el peso de las variables reales extraídas en la fase de ingeniería de características (retardos `Gas_Price_Lag_N`, promedios móviles temporales e indicadores). 
 
-## 5. Alcance del MVP
-El diseño propuesto es ambicioso en su utilidad lógica, pero realista en cuanto a la tecnología implementable durante el curso.
-*   **Implementado funcionalmente:** Se desarrollará el procesamiento de los datos subyacentes, la inferencia de los modelos (Ridge/LightGBM) y la generación estática de las gráficas (curvas de predicción y dependencias SHAP).
-*   **Representación visual:** Elementos de interactividad compleja (como botones para cambiar el modelo en caliente, o alertas *push* al móvil) formarán parte únicamente del concepto visual (*mockup*), dado el tiempo disponible.
-*   **Tecnología:** El *frontend* base operativo se construirá preferiblemente utilizando librerías ligeras de Python orientadas a datos, como `Streamlit` o `Dash`, permitiendo levantar la aplicación directamente sobre el *backend* de modelado ya desarrollado.
+*Uso de IA Generativa:* No se implementará IA generativa. En un mercado crítico hipervolátil, el trader requiere trazabilidad matemática absoluta. Las explicaciones se basarán puramente en el análisis de valores de Shapley aplicados sobre los algoritmos.
+
+## 5. Alcance real del MVP (Ajuste a la realidad analítica)
+Para garantizar que el producto final promete exactamente lo que los datos y los modelos desarrollados pueden sostener matemáticamente, se establece una diferenciación estricta entre el diseño conceptual del *mockup* y el MVP funcional:
+
+*   **Elementos implementados (MVP Funcional):** El frontal asumirá como línea base la predicción del **Modelo Naive** (el cual demostró en el *backtesting* recursivo ser la aproximación más segura a 30 días vista para mitigar la propagación del error). En paralelo, se integrará el análisis de impacto de variables (SHAP) aplicado sobre los modelos de *Machine Learning* (LightGBM/Ridge) utilizando exclusivamente las características temporales y de precios procesadas.
+*   **Elementos conceptuales (Descartados del MVP actual):** El *mockup* visualiza módulos de "Niveles de almacenamiento de gas", "Bandas de confianza probabilística (94.1%)" y un panel de "Influencia eléctrica" desglosado por tecnologías (eólica, solar, nuclear, CO₂). **Estos elementos se marcan exclusivamente como conceptuales para futuras iteraciones del producto.** El *pipeline* actual de datos no captura estas variables exógenas y los algoritmos implementados son deterministas (no probabilísticos), por lo que mostrarlos supondría incurrir en métricas irreales.

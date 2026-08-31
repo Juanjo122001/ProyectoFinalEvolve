@@ -383,7 +383,7 @@ def create_pct_change_feature(df):
 
     df["Gas_Price_Pct_Change_Lag_1"] = (
         df["Gas_Price_Lag_1"]
-        .pct_change()
+        .pct_change() * 100
     )
 
     return df
@@ -606,7 +606,7 @@ def prepare_future_row(
         prices.iloc[-1]
         / prices.iloc[-2]
         - 1
-    )
+    ) * 100
 
     # --------------------------------------------------------
     # VARIABLES GEOPOLÍTICAS
@@ -854,6 +854,9 @@ def generate_future_predictions(
                 how="inner"
             )
 
+    last_known_price = df["Gas_Price"].iloc[-1]
+    all_predictions["Naive_Prediction"] = last_known_price
+
     return all_predictions
 
 
@@ -1061,6 +1064,13 @@ def main():
         predictions=predictions,
         model_name="LightGBM",
         prediction_column="LightGBM_Prediction"
+    )
+
+    plot_future_forecast(
+        df = df,
+        predictions = predictions,
+        model_name= "Naive Baseline",
+        prediction_column="Naive_Prediction"
     )
 
     print(
