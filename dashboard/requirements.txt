@@ -1,0 +1,8 @@
+# Dashboard VOLT (se instala sobre el entorno del TFM)
+dash>=2.17
+plotly>=5.22
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.4    # los .pkl se guardaron con 1.4.0
+lightgbm>=4.3
+joblib>=1.3
